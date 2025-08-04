@@ -33,7 +33,17 @@ const RegistrationForm = ({ onRegister, setCurrentView }) => {
         username: form.username,
         role: form.role
       });
-      
+
+      // If role is student, also add to students collection
+      if (form.role === 'student') {
+        const { addStudent } = await import('../services/firebaseService');
+        await addStudent({
+          username: form.username,
+          email: form.email,
+          role: 'student'
+        });
+      }
+
       console.log('Registration successful!');
       if (onRegister) onRegister(form);
       if (setCurrentView) setCurrentView('login');

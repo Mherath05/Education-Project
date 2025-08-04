@@ -1,28 +1,127 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getStudents } from '../services/firebaseService';
+import './AdminDashboard.css';
 
-const AdminDashboard = ({ students, advertisements, setCurrentView }) => (
-  <div style={{ minHeight: '100vh', width: '100vw', background: 'linear-gradient(135deg, #e9ecef 0%, #f5f5f5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <div style={{ width: '100%', maxWidth: '900px', background: 'white', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '32px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h2>Admin Dashboard</h2>
-        <button onClick={() => setCurrentView('login')} style={{ padding: '8px 16px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Logout
-        </button>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
-        <button onClick={() => setCurrentView('upload-materials')} style={{ padding: '20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>Upload Materials</button>
-        <button onClick={() => setCurrentView('manage-students')} style={{ padding: '20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>Manage Students</button>
-        <button onClick={() => setCurrentView('manage-ads')} style={{ padding: '20px', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>Manage Advertisements</button>
-        <button onClick={() => setCurrentView('payment-management')} style={{ padding: '20px', backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>Payment Management</button>
-      </div>
-      <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px' }}>
-        <h3>Quick Stats</h3>
-        <p>Total Students: {students.length}</p>
-        <p>Paid This Month: {students.filter(s => s.paymentStatus).length}</p>
-        <p>Pending Advertisements: {advertisements.filter(ad => ad.status === 'pending').length}</p>
+const AdminDashboard = ({ students, advertisements, setCurrentView }) => {
+  const [localStudents, setLocalStudents] = useState(students || []);
+  
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        console.log('Loading students from Firebase...');
+        const studentsData = await getStudents();
+        console.log('Students loaded:', studentsData);
+        setLocalStudents(studentsData);
+      } catch (error) {
+        console.error('Error loading students:', error);
+      }
+    };
+    
+    loadStudents();
+  }, []);
+
+  console.log('Current students count:', localStudents.length);
+  
+  return (
+    <div className="admin-dashboard">
+      <div className="admin-container">
+        <div className="admin-header">
+          <h1 className="admin-title">
+            <span className="admin-icon">👑</span>
+            Welcome Nuwan
+          </h1>
+          <button onClick={() => setCurrentView('login')} className="logout-btn">
+            <span>🚪</span>
+            Logout
+          </button>
+        </div>
+
+        <div className="admin-grid">
+          <div className="admin-stats">
+            <div className="section-title">
+              <span className="section-icon">📊</span>
+              System Overview
+            </div>
+            
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-number">
+                  <span className="stat-icon">�‍🎓</span>
+                  {localStudents.length}
+                </div>
+                <div className="stat-label">Total Students</div>
+              </div>
+              
+              <div className="stat-card">
+                <div className="stat-number">
+                  <span className="stat-icon">✅</span>
+                  {localStudents.filter(s => s.paymentStatus).length}
+                </div>
+                <div className="stat-label">Paid This Month</div>
+              </div>
+              
+              <div className="stat-card">
+                <div className="stat-number">
+                  <span className="stat-icon">⏳</span>
+                  {advertisements.filter(ad => ad.status === 'pending').length}
+                </div>
+                <div className="stat-label">Pending Ads</div>
+              </div>
+              
+              <div className="stat-card">
+                <div className="stat-number">
+                  <span className="stat-icon">�</span>
+                  {Math.round((localStudents.filter(s => s.paymentStatus).length / Math.max(localStudents.length, 1)) * 100)}%
+                </div>
+                <div className="stat-label">Payment Rate</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="admin-actions">
+            <div className="section-title">
+              <span className="section-icon">⚡</span>
+              Quick Actions
+            </div>
+            
+            <div className="action-buttons">
+              <button 
+                onClick={() => setCurrentView('upload-materials')} 
+                className="action-btn btn-upload"
+              >
+                <span className="btn-icon">�</span>
+                <span>Upload Materials</span>
+              </button>
+              
+              <button 
+                onClick={() => setCurrentView('manage-students')} 
+                className="action-btn btn-students"
+              >
+                <span className="btn-icon">👥</span>
+                <span>Manage Students</span>
+              </button>
+              
+              <button 
+                onClick={() => setCurrentView('manage-ads')} 
+                className="action-btn btn-ads"
+              >
+                <span className="btn-icon">📢</span>
+                <span>Manage Ads</span>
+              </button>
+              
+              <button 
+                onClick={() => setCurrentView('payment-management')} 
+                className="action-btn btn-payments"
+              >
+                <span className="btn-icon">�</span>
+                <span>Payments</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default AdminDashboard;
